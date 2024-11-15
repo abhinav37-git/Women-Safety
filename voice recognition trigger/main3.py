@@ -16,11 +16,11 @@ tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-medium")
 
 # Initialize Firebase if not already initialized
-# with open('config.json') as config_file:
-#     config = json.load(config_file)
+with open('config.json') as config_file:
+    config = json.load(config_file)
 
 if not firebase_admin._apps:
-    cred = credentials.Certificate('safety-test-c6d7a-firebase-adminsdk-lhy8p-628cc3b110.json')
+    cred = credentials.Certificate(config['firebase_credentials'])
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
@@ -75,7 +75,7 @@ def store_sos_alert(user_input, ai_response, latitude, longitude, user_data):
         "location_url": location_url,
         "emergency_contacts": user_data['emergency_contacts']
     }
-    
+
     # Add SOS data under `last_sos` field in the device document
     doc_ref.update({
         "last_sos": sos_data,
@@ -94,13 +94,13 @@ def store_sos_alert(user_input, ai_response, latitude, longitude, user_data):
 def generate_response(user_input):
     global chat_history_ids  # Declare chat_history_ids as global to update it
     new_input_ids = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors="pt")
-    
+
     # Initialize bot_input_ids based on whether chat_history_ids has been initialized
     if chat_history_ids is None:
         bot_input_ids = new_input_ids
     else:
         bot_input_ids = torch.cat([chat_history_ids, new_input_ids], dim=-1)
-    
+
     # Generate response and update chat_history_ids
     chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
     ai_response = tokenizer.decode(chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True)
