@@ -86,6 +86,3 @@ We welcome contributions to enhance the functionality and features of this proje
 5. Push to the branch (`git push origin feature-branch`).
 6. Open a pull request.
 
-## Contact
-
-For any questions or suggestions, please feel free to reach out to the project maintainers at [abhinavd372@gmail.com].
